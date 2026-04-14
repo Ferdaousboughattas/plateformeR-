@@ -218,7 +218,7 @@ function startChrono() {
 // Ces emails auront automatiquement accès à l'onglet Admin ET Étudiant sans être bloqués
 const ADMIN_EMAILS = [
     'ferdaous.boughattas@unilasalle.fr',
-    'votre.nom@unilasalle.fr'
+    'joel.dropenou@unilasalle.fr'
 ];
 
 async function checkUser() {
