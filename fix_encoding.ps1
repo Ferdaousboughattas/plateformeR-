@@ -1,0 +1,16 @@
+$content = Get-Content app.js -Raw -Encoding UTF8
+$content = $content -replace "Ã©", "é"
+$content = $content -replace "Ã¨", "è"
+$content = $content -replace "Ãª", "ê"
+$content = $content -replace "Ã ", "à"
+$content = $content -replace "Ã¢", "â"
+$content = $content -replace "Ã®", "î"
+$content = $content -replace "Ã¯", "ï"
+$content = $content -replace "Ã´", "ô"
+$content = $content -replace "Ã»", "û"
+$content = $content -replace "Ã§", "ç"
+$content = $content -replace "Ã‰", "É"
+$content = $content -replace "Ãˆ", "È"
+$content = $content -replace "âš ï¸", "⚠️"
+$content = $content -replace "aÂ ", "a "
+Set-Content app.js $content -Encoding UTF8

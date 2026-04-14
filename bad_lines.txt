@@ -1,0 +1,11 @@
+﻿
+LineNumber Line                                                                                           
+---------- ----                                                                                           
+       217 // Ã°Å¸â€™Â¡ AJOUTEZ ICI VOTRE OU VOS EMAILS DE PROFESSEUR                                     
+       218 // Ces emails auront automatiquement accès ÃƒÂ  l'onglet Admin ET Étudiant sans être bloqués   
+       543     // 1. Sauvegarder l'état actuel avant de changer (si un exercice était déjÃƒÂ  sélectionné)
+       774 // Abonnement Temps Réel Supabase (Mise ÃƒÂ  jour automatique quand la base change)            
+       779         // l'application Web re-télécharge la liste ÃƒÂ  jour automatiquement en arrière plan. 
+      1003     // Mettre ÃƒÂ  jour l'affichage étudiant temporairement (sans sauver en BDD)               
+
+

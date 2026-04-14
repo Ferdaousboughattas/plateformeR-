@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnR - Plateforme Interactive</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/material-ocean.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/hint/show-hint.min.css">
+
+    <!-- Supabase JS Client (via CDN pour éviter l'installation de Node.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="style.css?v=3">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Navigation Bar -->
+        <nav class="top-nav">
+            <div class="logo">
+                <i class="fa-brands fa-r-project"></i> Learn<span class="accent">R</span>
+            </div>
+
+            <div id="mode-toggle" class="mode-toggle" style="display: none;">
+                <button id="btn-admin" class="tab-btn"><i class="fa-solid fa-square-plus"></i> Création
+                    d'Exercice</button>
+                <button id="btn-student" class="tab-btn"><i class="fa-solid fa-eye"></i> Affichage Étudiant</button>
+                <button id="btn-scores" class="tab-btn"><i class="fa-solid fa-trophy"></i> Tableau des scores</button>
+            </div>
+
+            <div class="user-profile" id="user-profile-section" style="display: flex; align-items: center; gap: 1rem;">
+                <!-- Exam Timer Chrono (Caché au début, activé par l'admin ou au démarrage) -->
+                <div id="chrono-container" class="action-btn secondary"
+                    style="cursor: default; font-family: var(--font-code);">
+                    <i class="fa-solid fa-stopwatch"></i> <span id="chrono-time">00:00</span>
+                </div>
+
+                <!-- Theme Toggle (Clair / Sombre) -->
+                <button id="btn-theme-toggle" class="action-btn secondary" title="Basculer le thème (Clair/Sombre)">
+                    <i id="theme-icon" class="fa-solid fa-sun"></i>
+                </button>
+
+                <!-- S'affichera si l'utilisateur n'est pas connecté -->
+                <button id="btn-login" class="action-btn secondary">Se connecter</button>
+
+                <!-- S'affichera si l'utilisateur est connecté -->
+                <div id="user-info" style="display: none; align-items: center; gap: 10px;">
+                    <span id="user-email" style="font-size: 0.9rem; color: var(--text-secondary);"></span>
+                    <button id="btn-logout" class="action-btn secondary" style="padding: 0.3rem 0.6rem;"><i
+                            class="fa-solid fa-right-from-bracket"></i></button>
+                    <div class="avatar">
+                        <img src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff" alt="User"
+                            id="avatar-img">
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="workspace">
+
+            <!-- Home View -->
+            <div id="view-home" class="view-panel active-view"
+                style="flex-direction: column; align-items: center; justify-content: center; padding: 2rem; width: 100%; overflow-y: auto;">
+                <div
+                    style="max-width: 800px; width: 100%; text-align: center; background: var(--panel-bg); padding: 3rem; border-radius: 12px; border: 1px solid var(--panel-border); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent-blue);"><i
+                            class="fa-brands fa-r-project"></i> Bienvenue sur LearnR</h1>
+                    <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 3rem; line-height: 1.6;">
+                        La plateforme d'examen interactive officielle pour tester vos compétences en programmation R.
+                    </p>
+
+                    <div
+                        style="display: flex; flex-direction: column; align-items: center; gap: 2rem; text-align: left; margin-bottom: 3rem;">
+                        <div
+                            style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); max-width: 400px; width: 100%;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.2rem;"><i
+                                    class="fa-solid fa-user-graduate" style="color: var(--accent-blue);"></i> Pour les
+                                Étudiants</h3>
+                            <ul
+                                style="color: var(--text-secondary); padding-left: 1.2rem; line-height: 1.6; font-size: 0.95rem;">
+                                <li style="margin-bottom: 0.5rem;">Lisez attentivement la théorie et les consignes.</li>
+                                <li style="margin-bottom: 0.5rem;">Rédigez votre code R dans l'éditeur.</li>
+                                <li>Exécutez pour tester et <strong>Soumettez</strong> votre code !</li>
+                            </ul>
+                            <button id="btn-home-student" class="action-btn primary"
+                                style="margin-top: 1.5rem; width: 100%; justify-content: center;"><i
+                                    class="fa-solid fa-right-to-bracket"></i> Accéder à l'Examen</button>
+                        </div>
+
+                        <div style="margin-top: 1rem; text-align: center;">
+                            <button id="btn-home-admin" class="tab-btn"
+                                style="color: var(--text-secondary); text-decoration: underline; background: transparent; border: none; font-size: 0.9rem; cursor: pointer;">
+                                <i class="fa-solid fa-user-tie"></i> Connexion Professeur
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Working Area (Always visible after login) -->
+            <div id="view-student" class="view-panel hidden-view"
+                style="width: 100%; flex-direction: row; gap: 1rem; padding: 1rem;">
+                <!-- Left Panel: Context (Admin, Scores or Instructions) -->
+                <section class="panel instructions-panel" id="left-dynamic-panel"
+                    style="display: flex; flex-direction: column;">
+
+                    <!-- Dynamic Headers for the left panel -->
+                    <header class="panel-header" id="header-student">
+                        <h2><i class="fa-solid fa-book-open"></i> Exercice</h2>
+                        <select id="exercise-selector" class="input-field"
+                            style="width: auto; padding: 0.2rem 0.5rem; font-size: 0.8rem; background-color: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--panel-border);">
+                            <option value="">Chargement...</option>
+                        </select>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="badge" id="current-badge" style="display:none;"></span>
+                        </div>
+                    </header>
+
+                    <header class="panel-header" id="header-admin"
+                        style="display: none; background-color: rgba(139, 92, 246, 0.1); border-bottom: 2px solid var(--accent-purple);">
+                        <h2 style="color: var(--accent-purple);"><i class="fa-solid fa-user-tie"></i> Espace Professeur
+                        </h2>
+                    </header>
+
+                    <header class="panel-header" id="header-scores"
+                        style="display: none; background-color: rgba(210, 153, 34, 0.1); border-bottom: 2px solid #d29922;">
+                        <h2 style="color: #d29922;"><i class="fa-solid fa-trophy"></i> Tableau des scores</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button id="btn-export-scores" class="action-btn secondary"
+                                style="font-size: 0.75rem; background: rgba(210, 153, 34, 0.2); color: #d29922; border: 1px solid #d2992244;">
+                                <i class="fa-solid fa-file-excel"></i> Exporter
+                            </button>
+                            <button id="btn-clear-scores" class="action-btn secondary"
+                                style="font-size: 0.75rem; color: #ff7b72; border: 1px solid rgba(255, 123, 114, 0.3);">
+                                <i class="fa-solid fa-trash-can"></i> Vider
+                            </button>
+                        </div>
+                    </header>
+
+                    <!-- Dynamic Contents for the left panel -->
+
+                    <!-- 1. Content: Instructions (Student) -->
+                    <div id="content-student" class="panel-content scrollable" style="display: block;">
+                        <div id="course-content">
+                            <!-- Instructions loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- 2. Content: Admin Dashboard (Modified with Sub-Tabs) -->
+                    <div id="content-admin" class="panel-content" style="display: none; padding: 0;">
+                        <!-- Sub-navigation for Admin -->
+                        <div class="admin-sub-nav"
+                            style="display: flex; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--panel-border); padding: 0.5rem 1rem; gap: 0.5rem;">
+                            <button class="sub-tab-btn active" data-admin-view="view-admin-bank">
+                                <i class="fa-solid fa-list"></i> Banque
+                            </button>
+                            <button class="sub-tab-btn" data-admin-view="view-admin-add">
+                                <i class="fa-solid fa-plus"></i> Nouvel Exercice
+                            </button>
+                            <button class="sub-tab-btn" data-admin-view="view-admin-templates">
+                                <i class="fa-solid fa-layer-group"></i> Templates
+                            </button>
+                            <button class="sub-tab-btn" data-admin-view="view-admin-students">
+                                <i class="fa-solid fa-users"></i> Étudiants
+                            </button>
+                        </div>
+
+                        <div class="admin-sub-views scrollable" style="padding: 1.5rem;">
+                            <!-- VIEW: BANK -->
+                            <div id="view-admin-bank" class="admin-sub-panels active-sub-panel">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                    <h3><i class="fa-solid fa-database"></i> Banque des questions</h3>
+                                    <button id="btn-seed-db" class="action-btn secondary" style="font-size: 0.75rem;">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i> Importer Démo
+                                    </button>
+                                </div>
+                                <div id="admin-exercises-list"
+                                    style="display: flex; flex-direction: column; gap: 1rem;">
+                                    <!-- Liste des exercices chargée ici -->
+                                    <p style="text-align: center; color: var(--text-secondary);">Chargement...</p>
+                                </div>
+                            </div>
+
+                            <!-- VIEW: ADD EXERCISE -->
+                            <div id="view-admin-add" class="admin-sub-panels" style="display: none;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+                                    <h3><i class="fa-solid fa-pen-to-square"></i> Configuration de l'exercice</h3>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button id="btn-preview-exercise" class="action-btn secondary"
+                                            title="Visualiser comme un étudiant">
+                                            <i class="fa-solid fa-eye"></i> Aperçu
+                                        </button>
+                                        <button id="btn-save-exercise" class="action-btn primary">
+                                            <i class="fa-solid fa-save"></i> Sauvegarder
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="admin-form-group">
+                                    <label>Titre de l'exercice</label>
+                                    <input type="text" id="ex-title" class="input-field"
+                                        placeholder="Ex: Analyse de la consommation..."
+                                        value="Moyenne et médiane (Food Consumption)">
+                                </div>
+
+                                <div class="admin-form-group">
+                                    <label>Description & Consignes (HTML)</label>
+                                    <textarea id="ex-desc" class="textarea-field font-code" rows="5"></textarea>
+                                </div>
+
+                                <button id="btn-add-qa" class="action-btn secondary"
+                                    style="width: 100%; margin-top: 1rem; border: 1px dashed #0A7262; color: #0A7262; background: rgba(10, 114, 98, 0.05);">
+                                    <i class="fa-solid fa-plus-circle"></i> Ajouter une étape (Question/Réponse)
+                                </button>
+
+                                <div id="qa-container"
+                                    style="display: flex; flex-direction: column; gap: 2rem; margin-top: 1.5rem;">
+                                    <!-- Q&A pairs (Wide & Colorful) -->
+                                    <div class="qa-pair-container"
+                                        style="background: rgba(10, 114, 98, 0.03); border: 1px solid #0A726244; border-radius: 12px; overflow: hidden;">
+                                        <div class="qa-header"
+                                            style="background: #0A7262; color: white; padding: 0.8rem 1.2rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                                            <span style="font-weight: 600;"><i class="fa-solid fa-chevron-down"></i>
+                                                Étape 1</span>
+                                            <span style="font-size: 0.7rem; opacity: 0.8;">Cliquer pour
+                                                réduire/agrandir</span>
+                                        </div>
+                                        <div class="qa-body"
+                                            style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; background: #ffffff;">
+                                            <div style="width: 100%;">
+                                                <label
+                                                    style="font-size: 0.85rem; color: #0A7262; font-weight: 600; display: block; margin-bottom: 0.5rem;">
+                                                    <i class="fa-solid fa-code"></i> Question (Code de départ pour
+                                                    l'étudiant)
+                                                </label>
+                                                <textarea class="textarea-field font-code ex-qa-start" rows="4"
+                                                    style="width: 100%; border-color: #0A726233; background: #fdfdfd; color: #333;"
+                                                    placeholder="# Écrivez ici les commentaires et le code..."></textarea>
+                                            </div>
+                                            <div style="width: 100%;">
+                                                <label
+                                                    style="font-size: 0.85rem; color: #0A7262; font-weight: 600; display: block; margin-bottom: 0.5rem;">
+                                                    <i class="fa-solid fa-check-double"></i> Réponse (Code solution
+                                                    attendu)
+                                                </label>
+                                                <textarea class="textarea-field font-code ex-qa-solution" rows="4"
+                                                    style="width: 100%; border-color: #0A726233; background: #fdfdfd; color: #333;"
+                                                    placeholder="# Écrivez ici la solution exacte..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="save-status"
+                                    style="color: var(--success); display: none; text-align: center; width: 100%; margin-top: 1rem;">
+                                    Sauvegardé avec succès !</div>
+                            </div>
+
+                            <!-- VIEW: TEMPLATES -->
+                            <div id="view-admin-templates" class="admin-sub-panels" style="display: none;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 1rem;">
+                                    <h3><i class="fa-solid fa-circle-info"></i> Guide d'Administration</h3>
+                                    <span class="badge"
+                                        style="background: var(--accent-purple); color: white;">Documentation
+                                        Technique</span>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                                    <!-- Technical Section -->
+                                    <div
+                                        style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 10px; border: 1px solid var(--panel-border);">
+                                        <h4 style="color: var(--accent-blue); margin-bottom: 0.8rem;"><i
+                                                class="fa-solid fa-microchip"></i> Fonctionnement Global</h4>
+                                        <div
+                                            style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+                                            <ul style="padding-left: 1.2rem; margin: 0;">
+                                                <li><strong>Moteur R :</strong> L'application utilise
+                                                    <strong>WebR</strong> (Posit). Le code s'exécute directement dans le
+                                                    navigateur de l'étudiant. Pas besoin de serveur R.
+                                                </li>
+                                                <li><strong>Base de données :</strong> <strong>Supabase</strong> gère
+                                                    tout le stockage. Les tables principales sont
+                                                    <code>exercices</code>, <code>allowed_students</code> et
+                                                    <code>results</code>.
+                                                </li>
+                                                <li><strong>Accès Admin :</strong> Le code secret est <code
+                                                        style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 4px; color: #fff;">apex2026R</code>.
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Personnalisation Section -->
+                                    <div
+                                        style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 10px; border: 1px solid var(--panel-border);">
+                                        <h4 style="color: #4f46e5; margin-bottom: 0.8rem;"><i
+                                                class="fa-solid fa-sliders"></i> Personnalisation du Test (Code source)
+                                        </h4>
+                                        <div
+                                            style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+                                            <p style="margin-bottom: 0.5rem;"><strong>🕒 Chrono (Timer) :</strong>
+                                                Modifiez la valeur de <code>EXAM_DURATION_MIN</code> tout au début du
+                                                fichier <code>app.js</code> (actuellement : 30 min). L'alerte se
+                                                déclenche automatiquement à 5 min de la fin.</p>
+                                            <p style="margin-bottom: 0.5rem;"><strong>⭐ Barème (Points) :</strong> Par
+                                                défaut, chaque étape vaut <strong>1 point</strong>. Pour changer cela,
+                                                ajoutez simplement <code>@point=2</code> (ou <code>@pts=5</code>) dans
+                                                le commentaire de votre solution dans l'onglet de modification.
+                                                L'application détectera automatiquement la valeur.</p>
+                                            <p style="margin-bottom: 0;"><strong>✅ Seuil de Validation :</strong> La
+                                                barrette devient verte et le certificat "Validé" apparaît si l'étudiant
+                                                dépasse <strong>50%</strong> (réglable dans
+                                                <code>updateStudentProgress</code>).
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Guidelines -->
+                                    <div
+                                        style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 10px; border: 1px solid var(--panel-border);">
+                                        <h4 style="color: #ea9a35; margin-bottom: 0.8rem;"><i
+                                                class="fa-solid fa-lightbulb"></i> Conseils de Création</h4>
+                                        <div
+                                            style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                                            <p><strong>Multi-étapes :</strong> Pour créer un exercice à plusieurs
+                                                questions, utilisez le format <code># Étape 1</code>,
+                                                <code># Étape 2</code> etc. au début de chaque bloc de code.
+                                            </p>
+                                            <p><strong>Gestion des Étudiants :</strong> Pour autoriser de nouveaux
+                                                étudiants, ajoutez leurs emails dans la table
+                                                <code>allowed_students</code> via l'interface Supabase.
+                                            </p>
+                                            <p><strong>Aperçu :</strong> Utilisez toujours le bouton
+                                                <strong>Aperçu</strong> avant de sauvegarder pour vérifier le rendu côté
+                                                étudiant.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Templates -->
+                                    <div
+                                        style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 10px; border: 1px solid var(--panel-border);">
+                                        <h4 style="margin-bottom: 1rem;"><i class="fa-solid fa-layer-group"></i>
+                                            Templates de Base</h4>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                            <div class="template-card" id="tpl-stats"
+                                                style="padding: 1rem; background: rgba(88, 166, 255, 0.05); border: 1px solid var(--accent-blue); border-radius: 8px; cursor: pointer;">
+                                                <h5 style="color: var(--accent-blue); font-size: 0.9rem;">Statistiques
+                                                </h5>
+                                                <p style="font-size: 0.75rem; margin-top: 5px;">Moyenne, variance,
+                                                    médiane.</p>
+                                            </div>
+                                            <div class="template-card" id="tpl-viz"
+                                                style="padding: 1rem; background: rgba(139, 92, 246, 0.05); border: 1px solid var(--accent-purple); border-radius: 8px; cursor: pointer;">
+                                                <h5 style="color: var(--accent-purple); font-size: 0.9rem;">Graphiques
+                                                </h5>
+                                                <p style="font-size: 0.75rem; margin-top: 5px;">Histogrammes, Boxplots,
+                                                    Nuages.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- VIEW: STUDENTS -->
+                            <div id="view-admin-students" class="admin-sub-panels" style="display: none;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--panel-border); padding-bottom: 1rem;">
+                                    <h3><i class="fa-solid fa-users"></i> Gestion des Étudiants autorisés</h3>
+                                </div>
+
+                                <div
+                                    style="background: rgba(255,255,255,0.02); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--panel-border); margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+
+                                    <!-- Exam Access Code Section -->
+                                    <div style="padding-bottom: 1.5rem; border-bottom: 1px solid var(--panel-border);">
+                                        <label
+                                            style="display:block; margin-bottom:0.5rem; font-size:0.9rem; color:var(--text-secondary); font-weight: 600;">Code
+                                            d'accès à l'examen (communiqué le jour J) :</label>
+                                        <div style="display:flex; gap:10px;">
+                                            <input type="text" id="admin-exam-code" class="input-field"
+                                                placeholder="Ex: ROCKS2026" style="flex-grow: 1;">
+                                            <button id="btn-save-exam-code" class="action-btn secondary"><i
+                                                    class="fa-solid fa-save"></i> Définir le code</button>
+                                        </div>
+                                        <div id="save-exam-code-status"
+                                            style="margin-top:0.5rem; font-size:0.8rem; display:none;"></div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            style="display:block; margin-bottom:0.5rem; font-size:0.9rem; color:var(--text-secondary);">Ajouter
+                                            des emails (séparés par des virgules ou retours à la ligne) :</label>
+                                        <div style="display:flex; flex-direction: column; gap:10px;">
+                                            <textarea id="new-student-email" class="textarea-field font-ui"
+                                                placeholder="etudiant1@unilasalle.fr, etudiant2@unilasalle.fr..."
+                                                rows="3" style="width: 100%;"></textarea>
+                                            <button id="btn-add-student" class="action-btn primary"
+                                                style="align-self: flex-end;"><i class="fa-solid fa-plus-circle"></i>
+                                                Autoriser la liste</button>
+                                        </div>
+                                        <div id="add-student-status"
+                                            style="margin-top:0.8rem; font-size:0.85rem; display:none; padding: 0.5rem; border-radius: 4px;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="font-size: 0.9rem; color: var(--text-secondary);">Liste des accès
+                                        autorisés</h4>
+                                    <div>
+                                        <button class="action-btn secondary" id="btn-refresh-students"
+                                            style="padding: 0.2rem 0.6rem; font-size:0.75rem; margin-right: 0.5rem;"><i
+                                                class="fa-solid fa-rotate"></i> Actualiser</button>
+                                        <button class="action-btn secondary" id="btn-clear-students"
+                                            style="padding: 0.2rem 0.6rem; font-size:0.75rem; color: #ff7b72; border: 1px solid rgba(255, 123, 114, 0.3);"><i
+                                                class="fa-solid fa-trash-can"></i> Tout vider</button>
+                                    </div>
+                                </div>
+
+                                <div id="admin-students-list"
+                                    style="background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--panel-border); overflow: hidden;">
+                                    <!-- List of students will be loaded here -->
+                                    <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                                        Chargement...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Content: Scores Table -->
+                    <div id="content-scores" class="panel-content scrollable" style="display: none; padding: 0;">
+                        <table
+                            style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.8rem; table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 22%">
+                                <col style="width: 26%">
+                                <col style="width: 12%">
+                                <col style="width: 13%">
+                                <col style="width: 12%">
+                                <col style="width: 15%">
+                            </colgroup>
+                            <thead
+                                style="position: sticky; top: 0; background: var(--panel-bg); border-bottom: 2px solid var(--panel-border); z-index: 1;">
+                                <tr>
+                                    <th style="padding: 0.6rem 0.5rem; font-weight: 600;"><i class="fa-solid fa-user"
+                                            style="margin-right:4px; color:var(--accent-blue)"></i>Étudiant / Total</th>
+                                    <th style="padding: 0.6rem 0.5rem; font-weight: 600;"><i class="fa-solid fa-book"
+                                            style="margin-right:4px; color:var(--accent-purple)"></i>Exercice</th>
+                                    <th style="padding: 0.6rem 0.5rem; font-weight: 600; text-align:center;"><i
+                                            class="fa-solid fa-percent" style="color:#d29922"></i></th>
+                                    <th style="padding: 0.6rem 0.5rem; font-weight: 600; text-align:center;"><i
+                                            class="fa-solid fa-star" style="color:#d29922"></i> Pts</th>
+                                    <th style="padding: 0.6rem 0.5rem; font-weight: 600; text-align:center;"><i
+                                            class="fa-solid fa-clock" style="color:var(--accent-blue)"></i></th>
+                                    <th style="padding: 0.6rem 0.5rem; font-weight: 600; text-align:right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scores-table-body">
+                                <!-- Scores loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </section>
+                <!-- Fin du left-dynamic-panel -->
+
+                <!-- Center Panel: Editor -->
+                <section class="panel editor-panel">
+                    <header class="panel-header">
+                        <h2><i class="fa-solid fa-code"></i> Éditeur R</h2>
+                        <div class="editor-actions">
+                            <button id="btn-run" class="action-btn primary"><i class="fa-solid fa-play"></i>
+                                Exécuter</button>
+                            <button id="btn-submit" class="action-btn"
+                                style="background-color: var(--accent-purple); color: white;"><i
+                                    class="fa-solid fa-paper-plane"></i> Soumettre</button>
+                            <button id="btn-end-exam" class="action-btn"
+                                style="background-color: #f85149; color: white;"><i
+                                    class="fa-solid fa-flag-checkered"></i> Terminer</button>
+                            <button id="btn-reset" class="action-btn secondary"><i
+                                    class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </header>
+                    <div id="exercise-feedback"
+                        style="display: none; padding: 10px;text-align: center;font-weight: bold;margin:0;border-bottom: 1px solid var(--panel-border);">
+                    </div>
+                    <div class="editor-container">
+                        <textarea id="code-editor"># Sélectionnez un exercice dans le menu de gauche pour commencer
+</textarea>
+                    </div>
+                </section>
+
+                <!-- Right Panel: Console & Output -->
+                <section class="panel output-panel">
+                    <div class="output-tabs">
+                        <button class="output-tab active" data-target="console"><i class="fa-solid fa-terminal"></i>
+                            Console</button>
+                        <button class="output-tab" data-target="plots"><i class="fa-solid fa-chart-bar"></i>
+                            Graphiques</button>
+                    </div>
+
+                    <div id="console-output" class="output-content active-content scrollable">
+                        <div class="terminal-loader" id="webr-status">
+                            <i class="fa-solid fa-spinner fa-spin"></i> Initialisation de WebR...
+                        </div>
+                        <div id="r-console-text"></div>
+                    </div>
+
+                    <div id="plots-output" class="output-content scrollable">
+                        <div class="placeholder-text"
+                            style="color: var(--text-secondary); text-align: center; margin-top: 2rem;">
+                            Les graphiques générés apparaîtront ici.
+                        </div>
+                        <div id="plot-container"></div>
+                    </div>
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connexion Sécurisée</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Réservée aux utilisateurs enregistrés</p>
+            </div>
+
+            <div class="modal-body" id="modal-step-1">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Adresse
+                    Email</label>
+                <input type="email" id="login-email" class="input-field" placeholder="utilisateur@exemple.fr">
+
+                <div id="admin-login-section" style="display: none; margin-top: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Code
+                        Administrateur</label>
+                    <input type="password" id="login-password" class="input-field" placeholder="Votre code secret">
+                </div>
+
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <a href="#" id="toggle-admin-login"
+                        style="font-size: 0.8rem; color: var(--accent-blue); text-decoration: none;">Accès
+                        professeur</a>
+                </div>
+
+                <div id="login-error-1" style="color: #ff7b72; font-size: 0.85rem; display: none; margin-top: 0.5rem;">
+                    Identifiants ou code incorrects.</div>
+            </div>
+
+            <div class="modal-body" id="modal-step-2" style="display: none;">
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Veuillez saisir le code d'accès à l'examen qui vous a été communiqué.
+                </p>
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Code de
+                    l'examen</label>
+                <input type="text" id="login-code" class="input-field" placeholder="CODE2026"
+                    style="letter-spacing: 2px; text-align: center; font-size: 1.2rem; font-weight: bold;">
+
+                <div id="login-error-2" style="color: #ff7b72; font-size: 0.85rem; display: none; margin-top: 0.5rem;">
+                    Code incorrect ou examen non démarré.</div>
+            </div>
+
+            <div class="modal-footer" id="modal-footer-1">
+                <button id="btn-cancel-login" class="action-btn secondary">Annuler</button>
+                <button id="btn-send-code" class="action-btn primary">Suivant</button>
+            </div>
+
+            <div class="modal-footer" id="modal-footer-2" style="display: none;">
+                <button id="btn-back-to-step1" class="tab-btn"
+                    style="background:none; border:none; text-decoration:underline; font-size:0.8rem; color:var(--text-secondary); cursor:pointer;">Retour</button>
+                <button id="btn-verify-code" class="action-btn primary">Vérifier & Entrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/r/r.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/hint/show-hint.min.js"></script>
+
+    <!-- Main App Script -->    <script>
+        window.addEventListener('error', function(event) {
+            alert("JS Error:\n" + event.message + "\nLine: " + event.lineno + "\nCol: " + event.colno);
+        });
+    </script>
+    <script type="module" src="app.js?v=14"></script>
+</body>
+
+</html>
